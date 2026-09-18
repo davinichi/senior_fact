@@ -1,0 +1,961 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#174a7c">
+  <title>くらしの情報を見分ける 安心クイズ</title>
+  <style>
+    :root {
+      --navy: #173f68;
+      --blue: #1769aa;
+      --blue-soft: #edf6fd;
+      --green: #176b3a;
+      --green-soft: #edf9f1;
+      --orange: #a4470b;
+      --orange-soft: #fff5e9;
+      --red: #a32020;
+      --ink: #18222d;
+      --muted: #4a5865;
+      --line: #b9c6d2;
+      --paper: #ffffff;
+      --page: #eef3f7;
+      --base-size: 20px;
+      --question-size: 1.55rem;
+      --shadow: 0 12px 34px rgba(31, 55, 77, 0.14);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      background: var(--page);
+      font-family: "BIZ UDPGothic", "Yu Gothic", "Hiragino Kaku Gothic ProN", system-ui, sans-serif;
+      font-size: var(--base-size);
+      line-height: 1.75;
+    }
+
+    body.extra-large {
+      --base-size: 24px;
+      --question-size: 1.65rem;
+    }
+
+    button, select { font: inherit; }
+    button { touch-action: manipulation; }
+
+    a {
+      color: #064f91;
+      text-underline-offset: 3px;
+    }
+
+    .app {
+      width: min(980px, calc(100% - 24px));
+      margin: 0 auto;
+      padding: 20px 0 40px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+
+    .brand {
+      color: var(--navy);
+      font-size: 1.05rem;
+      font-weight: 800;
+    }
+
+    .utility-button {
+      min-height: 48px;
+      padding: 8px 16px;
+      border: 2px solid var(--navy);
+      border-radius: 10px;
+      color: var(--navy);
+      background: #fff;
+      cursor: pointer;
+      font-weight: 800;
+    }
+
+    .panel {
+      overflow: hidden;
+      border: 2px solid #d0d9e2;
+      border-radius: 18px;
+      background: var(--paper);
+      box-shadow: var(--shadow);
+    }
+
+    .screen {
+      display: none;
+      padding: clamp(22px, 5vw, 48px);
+    }
+
+    .screen.active { display: block; }
+
+    h1, h2, h3, p { margin-top: 0; }
+
+    h1 {
+      margin-bottom: 12px;
+      color: #12395f;
+      font-size: clamp(2rem, 5vw, 3.15rem);
+      line-height: 1.35;
+    }
+
+    h2 {
+      font-size: clamp(1.45rem, 3.4vw, 2rem);
+      line-height: 1.5;
+    }
+
+    .lead {
+      color: var(--muted);
+      font-size: 1.08rem;
+    }
+
+    .promise {
+      margin: 24px 0;
+      padding: 20px 22px;
+      border-left: 7px solid var(--blue);
+      border-radius: 10px;
+      background: var(--blue-soft);
+    }
+
+    .promise strong {
+      display: block;
+      margin-bottom: 5px;
+      color: var(--navy);
+      font-size: 1.1rem;
+    }
+
+    .promise p { margin-bottom: 0; }
+
+    .keywords {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin: 24px 0;
+    }
+
+    .keyword {
+      padding: 14px 8px;
+      border: 2px solid #b8cbe0;
+      border-radius: 12px;
+      background: #f8fbff;
+      color: #12395f;
+      text-align: center;
+      font-weight: 900;
+    }
+
+    .settings {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+      margin-top: 24px;
+      padding: 20px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #f7f9fb;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 900;
+    }
+
+    select {
+      width: 100%;
+      min-height: 58px;
+      padding: 10px 14px;
+      border: 2px solid #71869a;
+      border-radius: 10px;
+      color: var(--ink);
+      background: #fff;
+    }
+
+    button:focus-visible,
+    select:focus-visible,
+    a:focus-visible {
+      outline: 4px solid #f5b301;
+      outline-offset: 3px;
+    }
+
+    .note {
+      margin: 14px 0 0;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .primary,
+    .secondary,
+    .plain {
+      min-height: 58px;
+      padding: 12px 24px;
+      border-radius: 11px;
+      cursor: pointer;
+      font-weight: 900;
+    }
+
+    .primary {
+      border: 2px solid var(--navy);
+      color: #fff;
+      background: var(--navy);
+    }
+
+    .primary:hover { background: #0d3153; }
+
+    .secondary {
+      border: 2px solid var(--blue);
+      color: #084b82;
+      background: #eef7ff;
+    }
+
+    .plain {
+      border: 2px solid #71869a;
+      color: #263746;
+      background: #fff;
+    }
+
+    .start-button {
+      width: 100%;
+      margin-top: 18px;
+      min-height: 66px;
+      font-size: 1.12rem;
+    }
+
+    .quiz-header {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+
+    .progress-label,
+    .score-label {
+      white-space: nowrap;
+      color: var(--navy);
+      font-weight: 900;
+    }
+
+    .progress-track {
+      height: 14px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: #dce4eb;
+    }
+
+    .progress-bar {
+      width: 0;
+      height: 100%;
+      background: var(--blue);
+      transition: width 0.25s ease;
+    }
+
+    .question-kind {
+      margin-bottom: 8px;
+      color: var(--blue);
+      font-weight: 900;
+    }
+
+    .question-box {
+      padding: clamp(20px, 4vw, 30px);
+      border: 2px solid #9bbad5;
+      border-radius: 14px;
+      background: #f4f9fd;
+    }
+
+    .question-box h2 {
+      margin: 0;
+      color: #142c41;
+      font-size: var(--question-size);
+    }
+
+    .read-row {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 10px;
+    }
+
+    .read-button {
+      min-height: 48px;
+      padding: 7px 15px;
+      border: 2px solid #71869a;
+      border-radius: 9px;
+      color: #263746;
+      background: #fff;
+      cursor: pointer;
+      font-weight: 800;
+    }
+
+    .choices {
+      display: grid;
+      gap: 14px;
+      margin-top: 20px;
+    }
+
+    .choice {
+      display: grid;
+      grid-template-columns: 48px 1fr;
+      align-items: center;
+      gap: 14px;
+      width: 100%;
+      min-height: 72px;
+      padding: 12px 16px;
+      border: 3px solid #8799aa;
+      border-radius: 13px;
+      color: var(--ink);
+      background: #fff;
+      cursor: pointer;
+      text-align: left;
+      font-weight: 800;
+    }
+
+    .choice:hover:not(:disabled) {
+      border-color: var(--blue);
+      background: var(--blue-soft);
+    }
+
+    .choice:disabled { cursor: default; opacity: 1; }
+
+    .choice-mark {
+      display: grid;
+      width: 40px;
+      height: 40px;
+      place-items: center;
+      border-radius: 50%;
+      color: #fff;
+      background: #536b80;
+    }
+
+    .choice.correct {
+      border-color: var(--green);
+      color: #104d2c;
+      background: var(--green-soft);
+    }
+
+    .choice.correct .choice-mark { background: var(--green); }
+
+    .choice.wrong {
+      border-color: var(--orange);
+      color: #753008;
+      background: var(--orange-soft);
+    }
+
+    .choice.wrong .choice-mark { background: var(--orange); }
+
+    .feedback {
+      display: none;
+      margin-top: 22px;
+      padding: 20px 22px;
+      border-radius: 13px;
+    }
+
+    .feedback.show { display: block; }
+    .feedback.good { border: 3px solid var(--green); background: var(--green-soft); }
+    .feedback.try { border: 3px solid var(--orange); background: var(--orange-soft); }
+
+    .feedback-title {
+      margin-bottom: 6px;
+      font-size: 1.18rem;
+      font-weight: 900;
+    }
+
+    .feedback p { margin-bottom: 8px; }
+    .feedback p:last-child { margin-bottom: 0; }
+    .answer-label, .safety-label { font-weight: 900; }
+
+    .next-row {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 18px;
+    }
+
+    .next-row button { min-width: 210px; }
+
+    .result-head { text-align: center; }
+
+    .result-score {
+      margin: 8px 0;
+      color: var(--navy);
+      font-size: clamp(2.5rem, 8vw, 4.4rem);
+      font-weight: 900;
+      line-height: 1.2;
+    }
+
+    .result-message {
+      margin-bottom: 24px;
+      font-weight: 700;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin: 22px 0;
+    }
+
+    .summary-item {
+      padding: 15px 17px;
+      border: 2px solid #c5d1dc;
+      border-radius: 11px;
+      background: #f8fafc;
+    }
+
+    .summary-item strong, .summary-item span { display: block; }
+    .summary-item span { color: var(--muted); font-size: 0.93rem; }
+
+    .safety-card {
+      margin: 24px 0;
+      padding: 20px 22px;
+      border: 3px solid var(--red);
+      border-radius: 13px;
+      background: #fff5f5;
+    }
+
+    .safety-card h3 { margin-bottom: 8px; color: #7d1717; }
+    .safety-card p { margin-bottom: 5px; }
+
+    .result-actions {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .review { margin-top: 28px; }
+
+    .review-item {
+      margin-bottom: 10px;
+      border: 2px solid #c8d2dc;
+      border-radius: 11px;
+      background: #fff;
+    }
+
+    .review-item summary {
+      padding: 14px 16px;
+      cursor: pointer;
+      font-weight: 900;
+    }
+
+    .review-body { padding: 0 16px 16px; }
+    .review-body p { margin: 6px 0 0; }
+
+    .references {
+      margin-top: 28px;
+      padding-top: 20px;
+      border-top: 2px solid #d2dbe3;
+      color: var(--muted);
+      font-size: 0.88rem;
+    }
+
+    .references ul { padding-left: 1.4em; }
+
+    footer {
+      padding: 16px 8px 0;
+      color: #52616e;
+      text-align: center;
+      font-size: 0.85rem;
+    }
+
+    @media (max-width: 720px) {
+      .app { width: min(100% - 12px, 980px); padding-top: 8px; }
+      .screen { padding: 20px 14px 26px; }
+      .topbar { align-items: flex-start; }
+      .keywords, .settings, .summary-grid { grid-template-columns: 1fr; }
+      .quiz-header { grid-template-columns: 1fr auto; }
+      .progress-track { grid-column: 1 / -1; grid-row: 2; }
+      .choice { grid-template-columns: 44px 1fr; padding: 11px 12px; }
+      .next-row button, .result-actions button { width: 100%; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      * { scroll-behavior: auto !important; transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <div class="topbar">
+      <div class="brand">安心して情報を確かめる練習</div>
+      <button id="sizeButton" class="utility-button" type="button" aria-pressed="false">文字をさらに大きく</button>
+    </div>
+
+    <div class="panel">
+      <section id="startScreen" class="screen active" aria-labelledby="mainTitle">
+        <h1 id="mainTitle">くらしの情報を見分ける<br>安心クイズ</h1>
+        <p class="lead">電話やメールで聞いたことを、すぐに事実だと決めず、落ち着いて確かめる練習です。時間制限はありません。</p>
+
+        <div class="promise">
+          <strong>覚えておきたい四つの行動</strong>
+          <p>いったん切る・リンクを押さない・送金しない・一人で決めない</p>
+        </div>
+
+        <div class="keywords" aria-label="情報の四つの分け方">
+          <div class="keyword">事実</div>
+          <div class="keyword">意見</div>
+          <div class="keyword">感想</div>
+          <div class="keyword">未確認</div>
+        </div>
+
+        <div class="settings">
+          <div>
+            <label for="topicSelect">出題分野</label>
+            <select id="topicSelect">
+              <option value="classification">事実・意見・感想の見分け</option>
+              <option value="phone">電話・訪問への対応</option>
+              <option value="digital">メール・SMS・パソコン</option>
+              <option value="verification">情報の確かめ方</option>
+              <option value="all" selected>総合チャレンジ</option>
+            </select>
+          </div>
+          <div>
+            <label for="countSelect">問題数</label>
+            <select id="countSelect">
+              <option value="5">5問</option>
+              <option value="10" selected>10問</option>
+              <option value="15">15問</option>
+              <option value="20">20問</option>
+              <option value="all">すべての問題</option>
+            </select>
+          </div>
+        </div>
+        <p class="note">全80問。同じ回に同じ問題は出ません。次の回も、まだ出ていない問題を優先します。</p>
+        <button id="startButton" class="primary start-button" type="button">クイズを始める</button>
+
+        <div class="references">
+          <strong>困ったときの相談先</strong>
+          <p>消費者ホットライン 188 ／ 警察相談専用電話 #9110<br>今すぐ危険があるときは110番へ。</p>
+        </div>
+      </section>
+
+      <section id="quizScreen" class="screen" aria-labelledby="questionText">
+        <div class="quiz-header">
+          <div id="progressLabel" class="progress-label">1 / 10</div>
+          <div class="progress-track" aria-hidden="true"><div id="progressBar" class="progress-bar"></div></div>
+          <div id="scoreLabel" class="score-label">確認できた 0</div>
+        </div>
+
+        <p id="questionKind" class="question-kind">どれでしょう</p>
+        <div class="question-box"><h2 id="questionText"></h2></div>
+        <div class="read-row"><button id="readButton" class="read-button" type="button">問題を読み上げる</button></div>
+        <div id="choices" class="choices" role="group" aria-labelledby="questionText"></div>
+
+        <div id="feedback" class="feedback" role="status" aria-live="polite">
+          <div id="feedbackTitle" class="feedback-title"></div>
+          <p><span class="answer-label">答え：</span><span id="correctAnswer"></span></p>
+          <p id="reasonText"></p>
+          <p><span class="safety-label">安全のポイント：</span><span id="tipText"></span></p>
+        </div>
+
+        <div class="next-row"><button id="nextButton" class="primary" type="button" hidden>次の問題へ</button></div>
+      </section>
+
+      <section id="resultScreen" class="screen" aria-labelledby="resultTitle">
+        <div class="result-head">
+          <p class="question-kind">今回の確認結果</p>
+          <h2 id="resultTitle">お疲れさまでした</h2>
+          <div id="resultScore" class="result-score">0 / 0</div>
+          <p id="resultMessage" class="result-message"></p>
+        </div>
+
+        <div id="summaryGrid" class="summary-grid"></div>
+
+        <div class="safety-card">
+          <h3>迷ったときは、その場で決めない</h3>
+          <p>電話はいったん切り、メールやSMSのリンクは押さず、相手が示した連絡先とは別に公式窓口を調べます。</p>
+          <p><strong>相談：</strong>消費者ホットライン 188 ／ 警察相談専用電話 #9110</p>
+        </div>
+
+        <div class="result-actions">
+          <button id="retryButton" class="secondary" type="button">迷った問題をもう一度</button>
+          <button id="newButton" class="primary" type="button">新しい問題に挑戦</button>
+          <button id="homeButton" class="plain" type="button">最初の画面へ戻る</button>
+        </div>
+
+        <div class="review">
+          <h3>答えを振り返る</h3>
+          <div id="reviewList"></div>
+        </div>
+
+        <div class="references">
+          <strong>参考にした公的情報</strong>
+          <ul>
+            <li><a href="https://www.npa.go.jp/bureau/safetylife/sos47/case/refund/" target="_blank" rel="noopener noreferrer">警察庁：還付金詐欺</a></li>
+            <li><a href="https://www.npa.go.jp/bureau/safetylife/sos47/new-topics/241218/06.html" target="_blank" rel="noopener noreferrer">警察庁：ニセ警察官とのビデオ通話</a></li>
+            <li><a href="https://www.kokusen.go.jp/mimamori/pdf/shinsen473.pdf" target="_blank" rel="noopener noreferrer">国民生活センター：サポート詐欺に注意</a></li>
+            <li><a href="https://www.kokusen.go.jp/news/data/n-20240221_1.html" target="_blank" rel="noopener noreferrer">国民生活センター：給湯器の点検商法</a></li>
+            <li><a href="https://www.npa.go.jp/bureau/safetylife/sos47/case/international-phone/" target="_blank" rel="noopener noreferrer">警察庁：国際電話を悪用した詐欺</a></li>
+            <li><a href="https://www.kokusen.go.jp/pdf/n-20240918_1.pdf" target="_blank" rel="noopener noreferrer">国民生活センター：訪問購入のトラブル</a></li>
+            <li><a href="https://www.kokusen.go.jp/news/data/n-20260901_1.html" target="_blank" rel="noopener noreferrer">国民生活センター：SNSの投資勧誘</a></li>
+            <li><a href="https://www.kokusen.go.jp/soudan_topics/data/subscription_traps.html" target="_blank" rel="noopener noreferrer">国民生活センター：通信販売の定期購入</a></li>
+            <li><a href="https://www.kokusen.go.jp/soudan_now/data/online-shopping-scams.html" target="_blank" rel="noopener noreferrer">国民生活センター：悪質通販サイト</a></li>
+            <li><a href="https://www.kokusen.go.jp/soudan_now/data/disaster.html" target="_blank" rel="noopener noreferrer">国民生活センター：災害に便乗した悪質商法</a></li>
+          </ul>
+        </div>
+      </section>
+    </div>
+
+    <footer>この教材は一般的な予防学習用です。実際の被害や契約トラブルは、公的な相談窓口へ相談してください。</footer>
+  </main>
+
+  <script>
+    'use strict';
+
+    const CLASSIFY_OPTIONS = [
+      { key: 'fact', label: '事実' },
+      { key: 'opinion', label: '意見' },
+      { key: 'impression', label: '感想' },
+      { key: 'unknown', label: 'まだ確認できない情報' }
+    ];
+
+    const QUESTIONS = [
+      { id:'c01', topic:'classification', skill:'情報の区別', prompt:'この文はどれでしょう', text:'領収書には、支払金額が2,980円と記載されています。', answer:'fact', options:CLASSIFY_OPTIONS, reason:'領収書を見れば、記載されている金額を誰でも確認できます。', tip:'記録や書類は、日付や発行元も合わせて確認しましょう。' },
+      { id:'c02', topic:'classification', skill:'情報の区別', prompt:'この文はどれでしょう', text:'温度計で測ると、部屋の温度は26℃でした。', answer:'fact', options:CLASSIFY_OPTIONS, reason:'温度計の数値を見て、同じ方法で確かめられます。', tip:'数字があっても、測定方法や日時を確認することが大切です。' },
+      { id:'c03', topic:'classification', skill:'情報の区別', prompt:'この文はどれでしょう', text:'通帳には、9月10日に年金が振り込まれたと記録されています。', answer:'fact', options:CLASSIFY_OPTIONS, reason:'通帳の記録を見て、振込日と内容を確認できます。', tip:'電話の説明より、通帳や公式書類などの記録を優先しましょう。' },
+      { id:'c04', topic:'classification', skill:'情報の区別', prompt:'この文はどれでしょう', text:'この地域には、休憩できるベンチを増やしたほうがよいと思います。', answer:'opinion', options:CLASSIFY_OPTIONS, reason:'地域をどうしたらよいかについての考えや提案です。', tip:'意見には、理由や根拠を添えると伝わりやすくなります。' },
+      { id:'c05', topic:'classification', skill:'情報の区別', prompt:'この文はどれでしょう', text:'家族で「不審な電話を受けたときの確認方法」を決めておくべきです。', answer:'opinion', options:CLASSIFY_OPTIONS, reason:'これからどう行動するのがよいかを述べた考えです。', tip:'家族だけが分かる合言葉や、折り返す番号を決める方法があります。' },
+      { id:'c06', topic:'classification', skill:'情報の区別', prompt:'この文はどれでしょう', text:'公民館でスマートフォン教室を増やしてほしいです。', answer:'opinion', options:CLASSIFY_OPTIONS, reason:'今後どのようにしてほしいかという希望や提案です。', tip:'希望と、すでに決まった事実を分けて考えましょう。' },
+      { id:'c07', topic:'classification', skill:'情報の区別', prompt:'この文はどれでしょう', text:'職員の説明を聞いて、安心しました。', answer:'impression', options:CLASSIFY_OPTIONS, reason:'説明を聞いたときに自分が感じたことを表しています。', tip:'安心した気持ちと、説明が事実かどうかは別に確認します。' },
+      { id:'c08', topic:'classification', skill:'情報の区別', prompt:'この文はどれでしょう', text:'突然「逮捕される」と言われ、とても怖く感じました。', answer:'impression', options:CLASSIFY_OPTIONS, reason:'その場で感じた不安や恐怖を表した感想です。', tip:'怖いと感じたときほど、いったん電話を切って第三者に相談しましょう。' },
+      { id:'c09', topic:'classification', skill:'情報の区別', prompt:'この文はどれでしょう', text:'スマートフォン教室は分かりやすくて、楽しかったです。', answer:'impression', options:CLASSIFY_OPTIONS, reason:'参加した人がどのように感じたかを伝えています。', tip:'感想は大切ですが、人によって受け止め方は異なります。' },
+      { id:'c10', topic:'classification', skill:'情報の区別', prompt:'この文はどれでしょう', text:'知人から「近くの銀行が来月閉店するらしい」と聞きましたが、銀行から発表はありません。', answer:'unknown', options:CLASSIFY_OPTIONS, reason:'知人から聞いただけで、銀行の公式発表を確認できていません。', tip:'金融機関の公式サイトや、普段使っている電話番号で確認しましょう。' },
+      { id:'c11', topic:'classification', skill:'情報の区別', prompt:'この文はどれでしょう', text:'ある人が「この株は来月必ず値上がりする」と言いました。', answer:'unknown', options:CLASSIFY_OPTIONS, reason:'将来の値動きを「必ず」と確定することはできません。', tip:'「必ずもうかる」「元本保証」という勧誘は、送金前に立ち止まりましょう。' },
+      { id:'c12', topic:'classification', skill:'情報の区別', prompt:'この文はどれでしょう', text:'SNSに「来月から年金が2倍になる」と書かれていましたが、公的機関の発表は見ていません。', answer:'unknown', options:CLASSIFY_OPTIONS, reason:'SNSの投稿だけで、公的機関の情報を確認できていません。', tip:'年金事務所などの公式情報を、自分で探した連絡先から確認します。' },
+      { id:'c13', topic:'classification', skill:'情報の区別', prompt:'この文はどれでしょう', text:'市の広報紙には、健康相談会は10月15日と記載されています。', answer:'fact', options:CLASSIFY_OPTIONS, reason:'広報紙を見れば、記載されている日付を誰でも確認できます。', tip:'古い広報紙の場合もあるため、発行日も確認しましょう。' },
+      { id:'c14', topic:'classification', skill:'情報の区別', prompt:'この文はどれでしょう', text:'電話機の着信履歴には、午前9時15分に着信があったと記録されています。', answer:'fact', options:CLASSIFY_OPTIONS, reason:'電話機の記録を見て、着信時刻を確認できます。', tip:'着信の記録は事実でも、表示された番号だけで相手の身元は決められません。' },
+      { id:'c15', topic:'classification', skill:'情報の区別', prompt:'この文はどれでしょう', text:'知らない番号からの電話は、留守番電話で確認したほうがよいと思います。', answer:'opinion', options:CLASSIFY_OPTIONS, reason:'電話へどのように対応するのがよいかという考えです。', tip:'知らない番号へすぐ出ないことは、不審電話との会話を避ける助けになります。' },
+      { id:'c16', topic:'classification', skill:'情報の区別', prompt:'この文はどれでしょう', text:'役所からの大切なお知らせは、もっと大きな文字で書くべきです。', answer:'opinion', options:CLASSIFY_OPTIONS, reason:'お知らせをどのように改善すべきかという考えや提案です。', tip:'提案と、すでに決まっている制度や事実を分けて考えましょう。' },
+      { id:'c17', topic:'classification', skill:'情報の区別', prompt:'この文はどれでしょう', text:'電話で急に支払いを求められ、不安な気持ちになりました。', answer:'impression', options:CLASSIFY_OPTIONS, reason:'電話を受けたときに自分が感じたことを述べています。', tip:'不安を感じたら、その場で払わず、いったん切って相談しましょう。' },
+      { id:'c18', topic:'classification', skill:'情報の区別', prompt:'この文はどれでしょう', text:'消費生活センターに相談して、ほっとしました。', answer:'impression', options:CLASSIFY_OPTIONS, reason:'相談した後に感じた安心した気持ちを表しています。', tip:'感じたことと、相談で確認できた事実を分けて整理するとよいでしょう。' },
+      { id:'c19', topic:'classification', skill:'情報の区別', prompt:'この文はどれでしょう', text:'電話の声が孫に似ていましたが、名前を言わず、本人への確認もできていません。', answer:'unknown', options:CLASSIFY_OPTIONS, reason:'声が似ているだけで、孫本人だとは確認できていません。', tip:'いったん切り、以前から知っている本人や家族の番号へかけます。' },
+      { id:'c20', topic:'classification', skill:'情報の区別', prompt:'この文はどれでしょう', text:'有名人が動画で「この投資は必ずもうかる」と話していましたが、本人の公式発表は確認していません。', answer:'unknown', options:CLASSIFY_OPTIONS, reason:'映像があっても、本人のものか、内容が正しいかを確認できていません。', tip:'著名人の公式サイトや公的な登録情報を調べ、送金前に相談します。' },
+
+      { id:'p01', topic:'phone', skill:'電話・訪問', prompt:'最も安全な対応はどれでしょう', text:'市役所を名乗る電話で「医療費の還付金がある。今日中にATMで手続きして」と言われました。', answer:'b', options:[{key:'a',label:'電話をつないだままATMへ行く'},{key:'b',label:'いったん切り、市役所の公式番号や家族に確認する'},{key:'c',label:'教えられた番号へすぐ折り返す'}], reason:'ATMを操作して還付金を受け取ることはできません。', tip:'「還付金」「今日まで」「ATM」は詐欺を疑い、188または#9110へ相談します。' },
+      { id:'p02', topic:'phone', skill:'電話・訪問', prompt:'最も安全な対応はどれでしょう', text:'警察官を名乗る人から「あなたの口座が犯罪に使われた。LINEのビデオ通話に移って」と言われました。', answer:'c', options:[{key:'a',label:'警察手帳を見せてもらえば信じる'},{key:'b',label:'指示どおりLINEを登録する'},{key:'c',label:'電話を切り、自分で調べた警察署の番号や#9110へ相談する'}], reason:'警察がLINEのトークやビデオ通話へ誘導して捜査することはありません。', tip:'相手が氏名や住所を知っていても、本物の証明にはなりません。' },
+      { id:'p03', topic:'phone', skill:'電話・訪問', prompt:'最も安全な対応はどれでしょう', text:'息子を名乗る人から「携帯電話をなくした。急いで現金が必要」と電話がありました。', answer:'a', options:[{key:'a',label:'いったん切り、以前から知っている息子の番号へかける'},{key:'b',label:'声が似ているので現金を用意する'},{key:'c',label:'電話で指定された人に現金を渡す'}], reason:'電話番号が変わったという話をそのまま信じず、元の番号やほかの家族から確認します。', tip:'家族だけが分かる合言葉を決めておく方法も有効です。' },
+      { id:'p04', topic:'phone', skill:'電話・訪問', prompt:'最も安全な対応はどれでしょう', text:'銀行員を名乗る人が「カードが不正利用された。職員が取りに行く」と電話してきました。', answer:'b', options:[{key:'a',label:'暗証番号を書いた紙とカードを渡す'},{key:'b',label:'電話を切り、通帳などに記載された銀行の番号へ確認する'},{key:'c',label:'カードだけなら渡す'}], reason:'銀行員や警察官を名乗って、カードや暗証番号をだまし取る手口があります。', tip:'キャッシュカードを渡さず、暗証番号も伝えません。' },
+      { id:'p05', topic:'phone', skill:'電話・訪問', prompt:'最も安全な対応はどれでしょう', text:'自動音声で「2時間後に電話が使えなくなります。詳しくは1番を押してください」と流れました。', answer:'c', options:[{key:'a',label:'1番を押して担当者につなぐ'},{key:'b',label:'住所と氏名を伝える'},{key:'c',label:'何も押さずに電話を切り、契約会社へ公式窓口から確認する'}], reason:'不安をあおる自動音声から、ニセ警察などへつなぐ手口があります。', tip:'知らない番号や自動音声の指示には従わず、公式窓口へ確認します。' },
+      { id:'p06', topic:'phone', skill:'電話・訪問', prompt:'最も安全な対応はどれでしょう', text:'突然来た業者が屋根を見て「このままでは危険。今日契約すれば安くなる」と言いました。', answer:'a', options:[{key:'a',label:'その場で契約せず、家族や複数の業者、公的窓口に相談する'},{key:'b',label:'今日だけ安いので契約する'},{key:'c',label:'現金で前払いする'}], reason:'不安をあおり、その場で契約を急がせる点検商法があります。', tip:'突然の点検は安易に受けず、インターホン越しに断ることもできます。' },
+      { id:'p07', topic:'phone', skill:'電話・訪問', prompt:'最も安全な対応はどれでしょう', text:'「自治体から頼まれた」と名乗る業者から、給湯器の無料点検を勧められました。', answer:'b', options:[{key:'a',label:'自治体の名前が出たので家に入れる'},{key:'b',label:'いったん断り、自治体や契約中の会社へ自分で確認する'},{key:'c',label:'無料ならすぐ点検してもらう'}], reason:'自治体や契約中の会社からの依頼だと偽る点検商法があります。', tip:'相手が示した連絡先ではなく、請求書などにある公式番号を使います。' },
+      { id:'p08', topic:'phone', skill:'電話・訪問', prompt:'最も安全な対応はどれでしょう', text:'電話で「未払い料金があり、今日払わないと裁判になる」と言われました。', answer:'c', options:[{key:'a',label:'怖いので電子マネーを買う'},{key:'b',label:'口座番号を聞いて振り込む'},{key:'c',label:'支払わず、契約先の公式窓口や188へ相談する'}], reason:'期限や裁判を持ち出して焦らせ、架空の料金を払わせる手口があります。', tip:'電話だけで判断せず、請求の根拠を公式窓口から確認します。' },
+      { id:'p09', topic:'phone', skill:'電話・訪問', prompt:'最も安全な対応はどれでしょう', text:'アンケートだという電話で「自宅に現金はいくらありますか」と聞かれました。', answer:'a', options:[{key:'a',label:'答えずに電話を切る'},{key:'b',label:'おおよその金額だけ答える'},{key:'c',label:'預金額も一緒に答える'}], reason:'資産や家族構成を聞き出し、別の犯罪に使う可能性があります。', tip:'現金、預金、家族構成、在宅時間などを知らない相手に伝えません。' },
+      { id:'p10', topic:'phone', skill:'電話・訪問', prompt:'最も安全な対応はどれでしょう', text:'知らない業者から「必ずもうかる投資です。今日中に振り込めば特別扱い」と勧められました。', answer:'b', options:[{key:'a',label:'少額だけ試す'},{key:'b',label:'振り込まず、家族や金融機関、公的窓口に相談する'},{key:'c',label:'今日だけなので借りて振り込む'}], reason:'「必ずもうかる」「今日だけ」と言って送金を急がせる勧誘は危険です。', tip:'投資には損失の可能性があります。利益を保証する話を信用しません。' },
+      { id:'p11', topic:'phone', skill:'電話・訪問', prompt:'最も安全な対応はどれでしょう', text:'「＋」から始まる知らない国際電話番号から、何度も着信がありました。海外へ電話する用事はありません。', answer:'a', options:[{key:'a',label:'出たりかけ直したりせず、着信拒否や国際電話の利用休止を検討する'},{key:'b',label:'用件が気になるのでかけ直す'},{key:'c',label:'番号を押して担当者につなぐ'}], reason:'国際電話番号が特殊詐欺に悪用されることがあります。', tip:'普段海外と電話しない場合は、国際電話の発着信を止めるサービスも確認できます。' },
+      { id:'p12', topic:'phone', skill:'電話・訪問', prompt:'最も安全な対応はどれでしょう', text:'市役所の職員を名乗る人が訪ねてきて「災害義援金を集めています」と現金を求めました。', answer:'c', options:[{key:'a',label:'市役所の人なので現金を渡す'},{key:'b',label:'少額だけ寄付する'},{key:'c',label:'支払わず、市役所の公式窓口へ確認する'}], reason:'公的機関を名乗り、災害に便乗して義援金を求める手口があります。', tip:'寄付は活動内容と使い道を確認できる確かな団体を通して行います。' },
+      { id:'p13', topic:'phone', skill:'電話・訪問', prompt:'最も安全な対応はどれでしょう', text:'「古着を買い取る」と電話した業者が来て、家に入ると貴金属を見せるよう強く求めました。', answer:'b', options:[{key:'a',label:'古着を売るためなので貴金属も見せる'},{key:'b',label:'見せずに帰ってもらい、不安なら188や警察へ相談する'},{key:'c',label:'目を離して貴金属を探しに行く'}], reason:'不用品の買い取りをきっかけに、貴金属を強引に求める訪問購入のトラブルがあります。', tip:'突然の購入業者を家に入れず、訪問を頼む場合も一人で対応しません。' },
+      { id:'p14', topic:'phone', skill:'電話・訪問', prompt:'最も安全な対応はどれでしょう', text:'台風の後、業者から「火災保険を使えば自己負担なしで屋根を修理できる」と電話がありました。', answer:'a', options:[{key:'a',label:'契約せず、加入している保険会社や代理店へ自分で確認する'},{key:'b',label:'無料なのでその場で契約する'},{key:'c',label:'保険申請をすべて業者に任せる'}], reason:'災害後に、保険金を口実として修理や申請代行を契約させるトラブルがあります。', tip:'修理は複数の見積もりを取り、保険の対象は保険会社へ確認します。' },
+      { id:'p15', topic:'phone', skill:'電話・訪問', prompt:'最も安全な対応はどれでしょう', text:'税務署を名乗る電話で「税金が未納。電子マネーで今日中に払って」と言われました。', answer:'b', options:[{key:'a',label:'コンビニで電子マネーを買う'},{key:'b',label:'支払わず、税務署の公式番号を自分で調べて確認する'},{key:'c',label:'電子マネーの番号だけ先に伝える'}], reason:'公的機関を名乗り、電子マネーで支払いを求める架空請求があります。', tip:'電子マネーの番号は現金と同じように扱い、他人へ伝えません。' },
+      { id:'p16', topic:'phone', skill:'電話・訪問', prompt:'最も安全な対応はどれでしょう', text:'電力会社を名乗る人から「料金が安くなるので、検針票の番号と生年月日を教えて」と電話がありました。', answer:'c', options:[{key:'a',label:'安くなるので全部伝える'},{key:'b',label:'検針票の番号だけ伝える'},{key:'c',label:'伝えずに切り、契約中の会社へ公式窓口から確認する'}], reason:'契約変更などを目的に、検針票や個人情報を聞き出す勧誘があります。', tip:'契約番号、生年月日、口座情報は、相手の身元を確認する前に伝えません。' },
+      { id:'p17', topic:'phone', skill:'電話・訪問', prompt:'最も安全な対応はどれでしょう', text:'「高齢者支援の調査です」と電話があり、一人暮らしか、家に現金があるかを聞かれました。', answer:'a', options:[{key:'a',label:'答えずに電話を切り、必要なら警察へ相談する'},{key:'b',label:'支援のためなので正直に答える'},{key:'c',label:'現金の場所だけ答える'}], reason:'家族構成や資産、在宅状況を聞き出し、犯罪に利用する可能性があります。', tip:'公的な調査に見えても、相手へ個人情報や資産情報を伝えません。' },
+      { id:'p18', topic:'phone', skill:'電話・訪問', prompt:'最も安全な対応はどれでしょう', text:'警察官を名乗る人が「現金を検査する。捜査員が自宅へ受け取りに行く」と言いました。', answer:'b', options:[{key:'a',label:'捜査なので現金を渡す'},{key:'b',label:'電話を切り、警察署の公式番号や#9110へ確認する'},{key:'c',label:'現金を袋に入れて玄関に置く'}], reason:'警察が現金を預かって検査するという話は、詐欺を疑う必要があります。', tip:'警察官や銀行員を名乗っても、現金やカードを渡しません。' },
+      { id:'p19', topic:'phone', skill:'電話・訪問', prompt:'最も安全な対応はどれでしょう', text:'裁判所を名乗る電話で「逮捕を避けるには、誰にも言わず保証金を振り込んで」と言われました。', answer:'c', options:[{key:'a',label:'秘密にして振り込む'},{key:'b',label:'相手が指定した弁護士へ電話する'},{key:'c',label:'振り込まず、電話を切って公的な連絡先から確認する'}], reason:'逮捕や裁判を持ち出し、口止めして金銭を求める手口があります。', tip:'「誰にも言わないで」と言われたときほど、家族や#9110へ相談します。' },
+      { id:'p20', topic:'phone', skill:'電話・訪問', prompt:'最も安全な対応はどれでしょう', text:'孫によく似た声の人から「事故を起こした。今すぐ示談金が必要」と電話がありました。', answer:'a', options:[{key:'a',label:'いったん切り、以前から知っている孫や家族の番号へ確認する'},{key:'b',label:'声が同じなので信じる'},{key:'c',label:'指定された人へ現金を渡す'}], reason:'声が似ていても、本人だと確認できたことにはなりません。', tip:'音声を似せる技術もあるため、家族の合言葉や別の連絡先で確認します。' },
+
+      { id:'d01', topic:'digital', skill:'メール・SMS', prompt:'最も安全な対応はどれでしょう', text:'SMSで「荷物を届けられませんでした。こちらで住所を確認」とリンクが届きました。', answer:'c', options:[{key:'a',label:'リンクから住所を入力する'},{key:'b',label:'SMSに住所を返信する'},{key:'c',label:'リンクを押さず、注文履歴や配送会社の公式サイトで確認する'}], reason:'宅配便を装い、偽サイトへ誘導するSMSがあります。', tip:'SMSのリンクではなく、普段使う公式アプリやブックマークから確認します。' },
+      { id:'d02', topic:'digital', skill:'メール・SMS', prompt:'最も安全な対応はどれでしょう', text:'銀行名のメールで「口座を停止します。今すぐログイン」と届きました。', answer:'a', options:[{key:'a',label:'メールのリンクを使わず、銀行の公式アプリや通帳の番号から確認する'},{key:'b',label:'メールのリンクから暗証番号を入力する'},{key:'c',label:'返信して本物か尋ねる'}], reason:'銀行を装った偽メールで、口座情報を盗むことがあります。', tip:'表示される差出人名だけでなく、公式の入口を自分で開いて確認します。' },
+      { id:'d03', topic:'digital', skill:'パソコン警告', prompt:'最も安全な対応はどれでしょう', text:'パソコンに大きく「ウイルス感染。今すぐこの番号へ電話」と表示され、警告音が鳴りました。', answer:'b', options:[{key:'a',label:'表示された番号へ電話する'},{key:'b',label:'電話せず、画面を閉じて家族や信頼できる相談先へ確認する'},{key:'c',label:'表示された会社へ電子マネーで支払う'}], reason:'偽の警告画面で電話をかけさせるサポート詐欺があります。', tip:'表示された番号へ連絡せず、遠隔操作ソフトも入れません。' },
+      { id:'d04', topic:'digital', skill:'パソコン警告', prompt:'最も安全な対応はどれでしょう', text:'サポート担当を名乗る人から「遠隔操作ソフトを入れ、電子マネーを買って」と言われました。', answer:'c', options:[{key:'a',label:'復旧のためなので従う'},{key:'b',label:'少額の電子マネーなら買う'},{key:'c',label:'操作を中止し、支払わず、家族や188へ相談する'}], reason:'遠隔操作と電子マネーの購入を組み合わせて金銭をだまし取る手口があります。', tip:'電子マネーの番号を相手へ伝えると、取り戻すのが難しくなります。' },
+      { id:'d05', topic:'digital', skill:'個人情報', prompt:'最も安全な対応はどれでしょう', text:'知人の名前のメッセージで「今届いた6桁の確認コードを教えて」と頼まれました。', answer:'a', options:[{key:'a',label:'教えず、以前から知っている連絡方法で本人に確認する'},{key:'b',label:'知人なので教える'},{key:'c',label:'最初の3桁だけ教える'}], reason:'確認コードは本人確認に使う秘密の情報です。知人のアカウントが乗っ取られている可能性もあります。', tip:'パスワードと確認コードは、メッセージや電話で他人に伝えません。' },
+      { id:'d06', topic:'digital', skill:'メール・SMS', prompt:'最も安全な対応はどれでしょう', text:'知らない相手から「請求書」という添付ファイルが届きました。', answer:'b', options:[{key:'a',label:'請求書なので開く'},{key:'b',label:'開かず、心当たりのある会社なら公式窓口から確認する'},{key:'c',label:'家族の端末で開く'}], reason:'ファイル名だけでは中身を判断できず、悪意のあるファイルの場合があります。', tip:'心当たりのない添付ファイルは開かず、転送もしません。' },
+      { id:'d07', topic:'digital', skill:'メール・SMS', prompt:'最も安全な対応はどれでしょう', text:'「公的な支援金8,000万円を受け取れます。手数料3,000円を電子マネーで」とメールが来ました。', answer:'c', options:[{key:'a',label:'3,000円なら支払う'},{key:'b',label:'受け取ってから本物か考える'},{key:'c',label:'返信も支払いもせず、公式情報を確認して188へ相談する'}], reason:'突然の高額支援と、受け取り前の手数料を組み合わせる詐欺があります。', tip:'「受け取るために先に払う」という話は、金額が小さくても応じません。' },
+      { id:'d08', topic:'digital', skill:'リンクの確認', prompt:'正しい考え方はどれでしょう', text:'チラシのQRコードを読み取るよう案内されました。', answer:'b', options:[{key:'a',label:'紙に印刷されているので必ず安全'},{key:'b',label:'発行元と表示された行き先を確認してから開く'},{key:'c',label:'小さなQRコードなら安全'}], reason:'QRコードもリンクの一種で、読み取る前には行き先が見えません。', tip:'上から別のQRコードを貼られる場合もあります。発行元も確認します。' },
+      { id:'d09', topic:'digital', skill:'本人確認', prompt:'最も安全な対応はどれでしょう', text:'友人の名前のメッセージで「急いでお金を貸して」と振込先が送られてきました。', answer:'a', options:[{key:'a',label:'振り込まず、電話など別の方法で本人に確認する'},{key:'b',label:'友人の名前なので振り込む'},{key:'c',label:'半額だけ振り込む'}], reason:'友人のアカウントが乗っ取られ、本人になりすましている可能性があります。', tip:'お金の依頼は、そのメッセージへの返信ではなく別の方法で確認します。' },
+      { id:'d10', topic:'digital', skill:'投資勧誘', prompt:'最も安全な対応はどれでしょう', text:'SNSで知り合った人から「二人の将来のために暗号資産へ投資しよう」と勧められました。', answer:'b', options:[{key:'a',label:'親しくなったので送金する'},{key:'b',label:'送金せず、家族や公的窓口に相談する'},{key:'c',label:'利益の画面があるので信用する'}], reason:'親しくなった後に投資を勧め、偽の利益画面を見せて送金させる手口があります。', tip:'会ったことのない相手からの投資話に送金しません。' },
+      { id:'d11', topic:'digital', skill:'メール・SMS', prompt:'最も安全な対応はどれでしょう', text:'国税庁を名乗るSMSで「税金が未納です。差し押さえ前にこちらから支払い」とリンクが届きました。', answer:'b', options:[{key:'a',label:'リンクからカード番号を入力する'},{key:'b',label:'リンクを押さず、国税庁の公式サイトや税務署へ確認する'},{key:'c',label:'SMSへ氏名を返信する'}], reason:'公的機関を装い、未納や差し押さえを理由に偽サイトへ誘導するSMSがあります。', tip:'SMSにあるリンクや電話番号は使わず、公式の入口を自分で探します。' },
+      { id:'d12', topic:'digital', skill:'メール・SMS', prompt:'最も安全な対応はどれでしょう', text:'電力会社を名乗るメールで「本日中に支払わないと停電」とリンクが届きました。', answer:'a', options:[{key:'a',label:'リンクを使わず、請求書や公式アプリで支払い状況を確認する'},{key:'b',label:'停電が怖いのでリンクから払う'},{key:'c',label:'メールへ口座番号を返信する'}], reason:'電気やガスの停止を装い、偽の支払い画面へ誘導するメールがあります。', tip:'期限で焦らされても、普段の請求書や公式アプリから確認します。' },
+      { id:'d13', topic:'digital', skill:'投資勧誘', prompt:'最も安全な対応はどれでしょう', text:'SNSに、有名人が主催するという投資グループの広告が表示されました。', answer:'c', options:[{key:'a',label:'有名人の写真があるので参加する'},{key:'b',label:'参加者の「もうかった」という投稿を信じる'},{key:'c',label:'公式発表と事業者登録を確認し、SNSの勧誘には送金しない'}], reason:'著名人の画像を無断使用し、投資グループへ誘導するトラブルがあります。', tip:'個人名義の口座へ投資資金を振り込むよう指示された場合は、振り込みません。' },
+      { id:'d14', topic:'digital', skill:'ネット通販', prompt:'最も安全な対応はどれでしょう', text:'珍しい商品が通常の半額で売られ、支払い方法は個人名義の銀行振込だけの通販サイトを見つけました。', answer:'b', options:[{key:'a',label:'売り切れる前に振り込む'},{key:'b',label:'注文せず、販売者情報や返品条件、悪質サイト情報を確認する'},{key:'c',label:'少額の商品で試す'}], reason:'極端な安値、個人名義口座だけの支払い、販売者情報の不足は、悪質通販サイトを疑う特徴です。', tip:'名称、住所、電話番号、返品条件、支払方法が明確か確認します。' },
+      { id:'d15', topic:'digital', skill:'定期購入', prompt:'最も安全な対応はどれでしょう', text:'健康食品が「初回500円」と広告されています。小さく定期購入の説明があるようです。', answer:'a', options:[{key:'a',label:'注文前に回数、総額、解約方法を最終確認画面で確認する'},{key:'b',label:'初回価格だけ見て注文する'},{key:'c',label:'いつでも簡単に解約できると思って注文する'}], reason:'低価格を強調しながら、定期購入が条件になっている通信販売があります。', tip:'最終確認画面を保存し、支払総額と解約条件を読みます。' },
+      { id:'d16', topic:'digital', skill:'定期購入', prompt:'正しい考え方はどれでしょう', text:'通販サイトに「定期縛りなし」と書かれています。', answer:'c', options:[{key:'a',label:'必ず1回だけ届くという意味'},{key:'b',label:'解約しなくても自動で終わるという意味'},{key:'c',label:'解約まで続く場合があるので、条件を詳しく確認する'}], reason:'「回数の決まりがない」ことと、「1回だけ」は同じとは限りません。', tip:'注文確定前に、定期購入か、次回発送日、解約期限を確認します。' },
+      { id:'d17', topic:'digital', skill:'ネット通販', prompt:'最も安全な対応はどれでしょう', text:'通販サイトに、事業者の住所や電話番号、返品の決まりが見当たりません。', answer:'b', options:[{key:'a',label:'商品写真がきれいなので注文する'},{key:'b',label:'信頼性を確認できないため注文しない'},{key:'c',label:'銀行振込なら安心なので注文する'}], reason:'事業者情報や返品・返金のルールが不明なサイトは、慎重に判断する必要があります。', tip:'注文前に画面を保存し、連絡先と返品条件を確認します。' },
+      { id:'d18', topic:'digital', skill:'メール・SMS', prompt:'最も安全な対応はどれでしょう', text:'災害支援団体を名乗るメールで「このQRコードから義援金を送って」と届きました。', answer:'c', options:[{key:'a',label:'災害支援なので急いで送る'},{key:'b',label:'少額ならQRコードから送る'},{key:'c',label:'メールのQRコードを使わず、団体の公式情報と使い道を確認する'}], reason:'災害に便乗し、公的機関や支援団体を装って金銭を求める手口があります。', tip:'寄付は、自分で調べた信頼できる団体の公式窓口から行います。' },
+      { id:'d19', topic:'digital', skill:'情報の確認', prompt:'正しい考え方はどれでしょう', text:'有名人が商品や投資を勧める動画が流れてきました。話し方も本人のように見えます。', answer:'a', options:[{key:'a',label:'動画だけで信じず、本人の公式サイトや報道、元の情報を確認する'},{key:'b',label:'顔と声が同じなので本人だと決める'},{key:'c',label:'多く再生されているので本物だと考える'}], reason:'映像や音声は編集・生成でき、本人の許可なく広告に使われることがあります。', tip:'動画の見た目ではなく、公式発表と発信元を確認します。' },
+      { id:'d20', topic:'digital', skill:'二次被害', prompt:'最も安全な対応はどれでしょう', text:'詐欺被害の後、「被害金を必ず取り戻す。先に手数料を払って」とメッセージが届きました。', answer:'b', options:[{key:'a',label:'取り戻せるなら先に払う'},{key:'b',label:'支払わず、警察や188、利用した金融機関へ相談する'},{key:'c',label:'成功報酬の一部だけ先に払う'}], reason:'被害者へ近づき、回復を名目にさらに金銭を取る二次被害があります。', tip:'被害回復を保証する相手へ追加送金せず、公的窓口へ相談します。' },
+
+      { id:'v01', topic:'verification', skill:'確かめ方', prompt:'正しい考え方はどれでしょう', text:'電話の相手が、自分の氏名と住所を知っていました。', answer:'c', options:[{key:'a',label:'個人情報を知っているので本物'},{key:'b',label:'役所か警察の人に違いない'},{key:'c',label:'情報を知っていても本物の証明にはならない'}], reason:'個人情報が名簿などから流出し、詐欺に使われる場合があります。', tip:'相手の所属と名前を聞いて電話を切り、公式番号へ自分から確認します。' },
+      { id:'v02', topic:'verification', skill:'確かめ方', prompt:'正しい考え方はどれでしょう', text:'着信画面の電話番号は、末尾が警察署でよく使われる「0110」でした。', answer:'b', options:[{key:'a',label:'0110なので必ず警察'},{key:'b',label:'番号表示だけで信じず、電話を切って警察署の公式番号へ確認する'},{key:'c',label:'相手の指示どおりSNSへ移る'}], reason:'表示される電話番号を偽装して信用させる手口があります。', tip:'着信履歴から折り返さず、自分で公式番号を調べます。' },
+      { id:'v03', topic:'verification', skill:'確かめ方', prompt:'正しい考え方はどれでしょう', text:'ウェブサイトに鍵のマークが表示されています。', answer:'a', options:[{key:'a',label:'通信保護の印であり、本物かどうかはURLや発信元も確認する'},{key:'b',label:'鍵があれば必ず本物'},{key:'c',label:'鍵があれば暗証番号を入力してよい'}], reason:'鍵のマークだけで、そのサイトが本物だとは判断できません。', tip:'公式アプリ、ブックマーク、通帳などにある正式な入口を使います。' },
+      { id:'v04', topic:'verification', skill:'確かめ方', prompt:'正しい考え方はどれでしょう', text:'SNSの投稿が何千回も共有されています。', answer:'c', options:[{key:'a',label:'多く共有されているので事実'},{key:'b',label:'知人も共有したので事実'},{key:'c',label:'共有数では決めず、元の資料や公的発表を確認する'}], reason:'誤った情報でも、多くの人に共有されることがあります。', tip:'発信者、日付、根拠、元の資料を確認します。' },
+      { id:'v05', topic:'verification', skill:'確かめ方', prompt:'最も安全な確認方法はどれでしょう', text:'届いたメールに「問い合わせ先」として電話番号が書かれています。', answer:'b', options:[{key:'a',label:'メールに書かれた番号へ電話する'},{key:'b',label:'請求書や公式サイトから連絡先を自分で探す'},{key:'c',label:'メールへ返信して確認する'}], reason:'偽メールには、犯人につながる連絡先が書かれていることがあります。', tip:'相手が示した連絡先ではなく、別に見つけた公式連絡先を使います。' },
+      { id:'v06', topic:'verification', skill:'危険な合図', prompt:'詐欺を疑う合図はどれでしょう', text:'「今日中」「今すぐ」「この電話を切らないで」と急がされました。', answer:'a', options:[{key:'a',label:'考える時間を奪おうとしている可能性がある'},{key:'b',label:'親切に急いでくれている'},{key:'c',label:'急ぐ話ほど信用できる'}], reason:'焦らせて、家族や公的窓口へ相談する時間を与えない手口があります。', tip:'急がされたら、むしろいったん切って相談します。' },
+      { id:'v07', topic:'verification', skill:'危険な合図', prompt:'詐欺を疑う合図はどれでしょう', text:'相手から「捜査中なので、家族には絶対に話さないで」と言われました。', answer:'c', options:[{key:'a',label:'秘密を守るため一人で対応する'},{key:'b',label:'相手を信用して送金する'},{key:'c',label:'口止めは危険な合図と考え、電話を切って相談する'}], reason:'周囲へ相談させないように口止めし、不安をあおる手口があります。', tip:'「誰にも言うな」と言われたときほど、家族や#9110へ相談します。' },
+      { id:'v08', topic:'verification', skill:'危険な合図', prompt:'正しい考え方はどれでしょう', text:'「大金を受け取るには、先に3,000円の手数料が必要」と言われました。', answer:'b', options:[{key:'a',label:'3,000円は少額なので払う'},{key:'b',label:'先に支払いを求める話を疑い、送金前に相談する'},{key:'c',label:'電子マネーなら安全なので払う'}], reason:'少額の手数料を入口に、その後も追加の支払いを求める手口があります。', tip:'金額にかかわらず、送金前に家族、188、#9110へ相談します。' },
+      { id:'v09', topic:'verification', skill:'確かめ方', prompt:'最初に何を確認しますか', text:'以前保存した「給付金のお知らせ」という画像を見つけました。', answer:'a', options:[{key:'a',label:'発行元と日付を確認し、現在も有効か公式情報で調べる'},{key:'b',label:'画像が残っているので今も有効だと考える'},{key:'c',label:'知人へすぐ転送する'}], reason:'以前は正しい情報でも、期限が過ぎたり制度が変更されたりします。', tip:'情報は内容だけでなく、発信者と日付を確認します。' },
+      { id:'v10', topic:'verification', skill:'確かめ方', prompt:'正しい確かめ方はどれでしょう', text:'SNSに、役所のお知らせを写したという画面写真が投稿されていました。', answer:'c', options:[{key:'a',label:'画面写真なのでそのまま信じる'},{key:'b',label:'多く共有されていれば信じる'},{key:'c',label:'役所の公式サイトで元のお知らせを探す'}], reason:'画面写真は一部だけ切り取ったり、内容を変えたりできます。', tip:'画像ではなく、元の文書や公式発表までたどります。' },
+      { id:'v11', topic:'verification', skill:'確かめ方', prompt:'正しい考え方はどれでしょう', text:'同じ情報を三つのSNS投稿で見つけましたが、どれも同じ画像を使っています。', answer:'b', options:[{key:'a',label:'三つあるので事実'},{key:'b',label:'同じ情報源の転載かもしれないので、元の資料を確認する'},{key:'c',label:'一番「いいね」が多い投稿を信じる'}], reason:'投稿数が多くても、同じ誤情報を繰り返しているだけの場合があります。', tip:'数よりも、独立した信頼できる情報源と根拠を確認します。' },
+      { id:'v12', topic:'verification', skill:'支払いの注意', prompt:'正しい考え方はどれでしょう', text:'相手から「電子マネーを買い、カード裏面の番号を写真で送って」と言われました。', answer:'c', options:[{key:'a',label:'カード自体を渡さないので安全'},{key:'b',label:'写真だけなら後で取り消せる'},{key:'c',label:'番号は現金と同じように使われるので、送らない'}], reason:'電子マネーの番号を知られると、相手がその金額を利用できてしまいます。', tip:'電子マネーでの支払いを指示されたら中止し、188や警察へ相談します。' },
+      { id:'v13', topic:'verification', skill:'投資の確認', prompt:'詐欺を疑うべき点はどれでしょう', text:'投資グループから、投資金を「担当者個人名義」の銀行口座へ振り込むよう指定されました。', answer:'a', options:[{key:'a',label:'投資資金を個人名義口座へ振り込ませること'},{key:'b',label:'担当者に名前があること'},{key:'c',label:'銀行振込を使うこと'}], reason:'正規の金融取引で、投資資金を担当者個人名義の口座へ振り込ませることはありません。', tip:'振り込まず、金融庁の登録情報や188、警察へ確認します。' },
+      { id:'v14', topic:'verification', skill:'投資の確認', prompt:'正しい考え方はどれでしょう', text:'投資アプリの画面では、100万円の利益が表示されています。', answer:'b', options:[{key:'a',label:'画面に利益があるので本当にもうかっている'},{key:'b',label:'表示だけでは事実と決めず、出金や事業者の登録を確認する'},{key:'c',label:'さらに入金すれば必ず出金できる'}], reason:'偽のアプリや画面で利益が出たように見せ、追加送金させる場合があります。', tip:'出金のための税金や手数料を追加で求められても送金しません。' },
+      { id:'v15', topic:'verification', skill:'投資の確認', prompt:'正しい考え方はどれでしょう', text:'投資を始めた直後、少額の利益だけは出金できました。', answer:'c', options:[{key:'a',label:'一度出金できたので必ず安全'},{key:'b',label:'もっと大きな金額を入れる'},{key:'c',label:'信用させるための可能性もあるので、追加送金前に確認する'}], reason:'最初に少額を出金させて信用させ、その後に高額な送金を促す事例があります。', tip:'追加送金の前に、事業者の登録と取引の仕組みを独立して確認します。' },
+      { id:'v16', topic:'verification', skill:'通販の確認', prompt:'注文前に確認するものはどれでしょう', text:'初めて利用する通販サイトで商品を買おうとしています。', answer:'a', options:[{key:'a',label:'事業者名、住所、電話番号、返品条件、支払方法'},{key:'b',label:'写真の枚数だけ'},{key:'c',label:'割引率だけ'}], reason:'販売者情報や返品条件が不明なサイトでは、商品が届かないなどのトラブルがあります。', tip:'極端な安値や個人名義口座だけの支払いにも注意します。' },
+      { id:'v17', topic:'verification', skill:'契約の確認', prompt:'注文確定前に確認するものはどれでしょう', text:'「初回だけ大幅割引」という健康食品を注文しようとしています。', answer:'b', options:[{key:'a',label:'最初の価格だけ'},{key:'b',label:'定期購入か、総額、次回発送日、解約条件'},{key:'c',label:'広告に出ている体験談だけ'}], reason:'初回価格が安くても、複数回の購入や解約条件がある場合があります。', tip:'最終確認画面をスクリーンショットや印刷で保存します。' },
+      { id:'v18', topic:'verification', skill:'記録と相談', prompt:'トラブルに備えて残すものはどれでしょう', text:'訪問販売で契約を勧められ、迷っています。', answer:'c', options:[{key:'a',label:'担当者の顔の印象だけ'},{key:'b',label:'口頭で聞いた記憶だけ'},{key:'c',label:'契約書、名刺、広告、やり取り、支払記録'}], reason:'書面ややり取りの記録は、契約内容の確認や相談に役立ちます。', tip:'その場で決めず、書類を持って家族や188へ相談します。' },
+      { id:'v19', topic:'verification', skill:'電話への備え', prompt:'不審電話を減らす方法として適切なのはどれでしょう', text:'知らない相手との電話をできるだけ避けたいと考えています。', answer:'b', options:[{key:'a',label:'すべての電話へすぐ出る'},{key:'b',label:'留守番電話、番号表示、非通知拒否、迷惑電話対策を利用する'},{key:'c',label:'かかってきた番号へ必ず折り返す'}], reason:'犯人と直接話さないための電話機能やサービスは、被害防止に役立ちます。', tip:'家族と設定を確認し、よく連絡する相手を登録しておくと安心です。' },
+      { id:'v20', topic:'verification', skill:'記録と相談', prompt:'相談するときに役立つものはどれでしょう', text:'不審な電話を受けましたが、金銭は払っていません。', answer:'a', options:[{key:'a',label:'日時、番号、相手の名乗り、話の内容をメモして相談する'},{key:'b',label:'恥ずかしいので誰にも言わない'},{key:'c',label:'証拠が少ないので何もしない'}], reason:'支払っていなくても、早めに相談すると今後の対応や被害防止につながります。', tip:'緊急でなければ#9110や188、危険が迫っている場合は110番へ連絡します。' }
+    ];
+
+    const TOPIC_NAMES = {
+      classification: '事実・意見・感想の見分け',
+      phone: '電話・訪問への対応',
+      digital: 'メール・SMS・パソコン',
+      verification: '情報の確かめ方'
+    };
+
+    const startScreen = document.getElementById('startScreen');
+    const quizScreen = document.getElementById('quizScreen');
+    const resultScreen = document.getElementById('resultScreen');
+    const sizeButton = document.getElementById('sizeButton');
+    const topicSelect = document.getElementById('topicSelect');
+    const countSelect = document.getElementById('countSelect');
+    const startButton = document.getElementById('startButton');
+    const progressLabel = document.getElementById('progressLabel');
+    const progressBar = document.getElementById('progressBar');
+    const scoreLabel = document.getElementById('scoreLabel');
+    const questionKind = document.getElementById('questionKind');
+    const questionText = document.getElementById('questionText');
+    const readButton = document.getElementById('readButton');
+    const choices = document.getElementById('choices');
+    const feedback = document.getElementById('feedback');
+    const feedbackTitle = document.getElementById('feedbackTitle');
+    const correctAnswer = document.getElementById('correctAnswer');
+    const reasonText = document.getElementById('reasonText');
+    const tipText = document.getElementById('tipText');
+    const nextButton = document.getElementById('nextButton');
+    const resultScore = document.getElementById('resultScore');
+    const resultMessage = document.getElementById('resultMessage');
+    const summaryGrid = document.getElementById('summaryGrid');
+    const retryButton = document.getElementById('retryButton');
+    const newButton = document.getElementById('newButton');
+    const homeButton = document.getElementById('homeButton');
+    const reviewList = document.getElementById('reviewList');
+
+    let activeTopic = 'all';
+    let sessionQuestions = [];
+    let currentIndex = 0;
+    let score = 0;
+    let answered = false;
+    let responses = [];
+
+    function shuffle(items) {
+      const copy = [...items];
+      for (let i = copy.length - 1; i > 0; i -= 1) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+      return copy;
+    }
+
+    function showScreen(screen) {
+      [startScreen, quizScreen, resultScreen].forEach((item) => item.classList.toggle('active', item === screen));
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function poolForTopic(topic) {
+      return topic === 'all' ? QUESTIONS : QUESTIONS.filter((question) => question.topic === topic);
+    }
+
+    function readDeck(topic, validIds) {
+      try {
+        const saved = JSON.parse(localStorage.getItem('seniorSafetyDeck_v1_' + topic));
+        if (!Array.isArray(saved)) return [];
+        return [...new Set(saved)].filter((id) => validIds.includes(id));
+      } catch (error) { return []; }
+    }
+
+    function saveDeck(topic, deck) {
+      try { localStorage.setItem('seniorSafetyDeck_v1_' + topic, JSON.stringify(deck)); }
+      catch (error) { /* 保存できなくても、同じ回の重複は防止されます。 */ }
+    }
+
+    function drawQuestions(topic, requestedCount) {
+      const pool = poolForTopic(topic);
+      const ids = pool.map((question) => question.id);
+      const count = requestedCount === 'all' ? pool.length : Math.min(Number(requestedCount), pool.length);
+      let deck = readDeck(topic, ids);
+      const selected = [];
+
+      while (selected.length < count) {
+        if (deck.length === 0) deck = shuffle(ids.filter((id) => !selected.includes(id)));
+        if (deck.length === 0) break;
+        const id = deck.shift();
+        if (!selected.includes(id)) selected.push(id);
+      }
+
+      saveDeck(topic, deck);
+      return selected.map((id) => pool.find((question) => question.id === id));
+    }
+
+    function startQuiz(customQuestions = null) {
+      activeTopic = topicSelect.value;
+      sessionQuestions = customQuestions ? shuffle(customQuestions) : drawQuestions(activeTopic, countSelect.value);
+      currentIndex = 0;
+      score = 0;
+      responses = [];
+      showScreen(quizScreen);
+      renderQuestion();
+    }
+
+    function optionLabel(question, key) {
+      const option = question.options.find((item) => item.key === key);
+      return option ? option.label : key;
+    }
+
+    function renderQuestion() {
+      answered = false;
+      const question = sessionQuestions[currentIndex];
+      progressLabel.textContent = `${currentIndex + 1} / ${sessionQuestions.length}`;
+      progressBar.style.width = `${((currentIndex + 1) / sessionQuestions.length) * 100}%`;
+      scoreLabel.textContent = `確認できた ${score}`;
+      questionKind.textContent = question.prompt;
+      questionText.textContent = question.text;
+      choices.replaceChildren();
+
+      shuffle(question.options).forEach((option, index) => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'choice';
+        button.dataset.answer = option.key;
+        button.innerHTML = `<span class="choice-mark" aria-hidden="true">${String.fromCharCode(65 + index)}</span><span>${option.label}</span>`;
+        button.addEventListener('click', () => checkAnswer(option.key));
+        choices.appendChild(button);
+      });
+
+      feedback.className = 'feedback';
+      feedbackTitle.textContent = '';
+      correctAnswer.textContent = '';
+      reasonText.textContent = '';
+      tipText.textContent = '';
+      nextButton.hidden = true;
+      nextButton.textContent = currentIndex === sessionQuestions.length - 1 ? '結果を見る' : '次の問題へ';
+      const first = choices.querySelector('button');
+      if (first) first.focus();
+    }
+
+    function checkAnswer(selectedKey) {
+      if (answered) return;
+      answered = true;
+      const question = sessionQuestions[currentIndex];
+      const isCorrect = selectedKey === question.answer;
+      if (isCorrect) score += 1;
+      responses.push({ question, selectedKey, isCorrect });
+
+      choices.querySelectorAll('.choice').forEach((button) => {
+        button.disabled = true;
+        if (button.dataset.answer === question.answer) button.classList.add('correct');
+        else if (button.dataset.answer === selectedKey) button.classList.add('wrong');
+      });
+
+      scoreLabel.textContent = `確認できた ${score}`;
+      feedback.className = `feedback show ${isCorrect ? 'good' : 'try'}`;
+      feedbackTitle.textContent = isCorrect ? '正解です。落ち着いて判断できました。' : 'ここを確認しておきましょう。';
+      correctAnswer.textContent = optionLabel(question, question.answer);
+      reasonText.textContent = question.reason;
+      tipText.textContent = question.tip;
+      nextButton.hidden = false;
+      nextButton.focus();
+    }
+
+    function finishQuiz() {
+      const total = sessionQuestions.length;
+      const percent = Math.round(score / total * 100);
+      resultScore.textContent = `${score} / ${total}`;
+      resultMessage.textContent = percent === 100
+        ? 'すべて確認できました。実際の場面でも、いったん止まって確かめましょう。'
+        : percent >= 70
+          ? 'よく確認できました。迷った問題の安全ポイントも振り返りましょう。'
+          : '点数より、迷ったときに相談することが大切です。安全ポイントをもう一度確認しましょう。';
+      buildSummary();
+      buildReview();
+      retryButton.hidden = responses.every((response) => response.isCorrect);
+      showScreen(resultScreen);
+    }
+
+    function buildSummary() {
+      summaryGrid.replaceChildren();
+      const topics = [...new Set(responses.map((response) => response.question.topic))];
+      topics.forEach((topic) => {
+        const items = responses.filter((response) => response.question.topic === topic);
+        const correct = items.filter((response) => response.isCorrect).length;
+        const box = document.createElement('div');
+        box.className = 'summary-item';
+        const title = document.createElement('strong');
+        title.textContent = TOPIC_NAMES[topic];
+        const value = document.createElement('span');
+        value.textContent = `${correct} / ${items.length} 問確認`;
+        box.append(title, value);
+        summaryGrid.appendChild(box);
+      });
+    }
+
+    function buildReview() {
+      reviewList.replaceChildren();
+      responses.forEach((response, index) => {
+        const details = document.createElement('details');
+        details.className = 'review-item';
+        const summary = document.createElement('summary');
+        summary.textContent = `${response.isCorrect ? '○' : '△'} ${index + 1}. ${response.question.text}`;
+        const body = document.createElement('div');
+        body.className = 'review-body';
+        const selected = document.createElement('p');
+        selected.textContent = `選んだ答え：${optionLabel(response.question, response.selectedKey)}`;
+        const answer = document.createElement('p');
+        answer.textContent = `正しい答え：${optionLabel(response.question, response.question.answer)}`;
+        const reason = document.createElement('p');
+        reason.textContent = `理由：${response.question.reason}`;
+        const tip = document.createElement('p');
+        tip.textContent = `安全のポイント：${response.question.tip}`;
+        body.append(selected, answer, reason, tip);
+        details.append(summary, body);
+        reviewList.appendChild(details);
+      });
+    }
+
+    function readCurrentQuestion() {
+      if (!('speechSynthesis' in window)) {
+        readButton.textContent = 'この端末では読み上げできません';
+        readButton.disabled = true;
+        return;
+      }
+      window.speechSynthesis.cancel();
+      const question = sessionQuestions[currentIndex];
+      const text = `${question.prompt}。${question.text}。選択肢。${question.options.map((item) => item.label).join('。')}`;
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'ja-JP';
+      utterance.rate = 0.88;
+      window.speechSynthesis.speak(utterance);
+    }
+
+    sizeButton.addEventListener('click', () => {
+      const enlarged = document.body.classList.toggle('extra-large');
+      sizeButton.setAttribute('aria-pressed', String(enlarged));
+      sizeButton.textContent = enlarged ? '標準の文字サイズに戻す' : '文字をさらに大きく';
+    });
+
+    startButton.addEventListener('click', () => startQuiz());
+    readButton.addEventListener('click', readCurrentQuestion);
+    nextButton.addEventListener('click', () => {
+      if (!answered) return;
+      if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+      if (currentIndex < sessionQuestions.length - 1) {
+        currentIndex += 1;
+        renderQuestion();
+      } else finishQuiz();
+    });
+    retryButton.addEventListener('click', () => {
+      const wrong = responses.filter((response) => !response.isCorrect).map((response) => response.question);
+      if (wrong.length) startQuiz(wrong);
+    });
+    newButton.addEventListener('click', () => startQuiz());
+    homeButton.addEventListener('click', () => showScreen(startScreen));
+
+    if (!('speechSynthesis' in window)) {
+      readButton.textContent = '読み上げ非対応';
+      readButton.disabled = true;
+    }
+  </script>
+</body>
+</html>
